@@ -14,6 +14,7 @@
 		6057010E2005905800CF1FB7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6057010C2005905800CF1FB7 /* LaunchScreen.storyboard */; };
 		605701162005947C00CF1FB7 /* Line.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605701152005947C00CF1FB7 /* Line.swift */; };
 		60570118200595C100CF1FB7 /* DrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60570117200595C100CF1FB7 /* DrawView.swift */; };
+		6057011A200C282600CF1FB7 /* Circle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60570119200C282600CF1FB7 /* Circle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		6057010F2005905800CF1FB7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		605701152005947C00CF1FB7 /* Line.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Line.swift; sourceTree = "<group>"; };
 		60570117200595C100CF1FB7 /* DrawView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawView.swift; sourceTree = "<group>"; };
+		60570119200C282600CF1FB7 /* Circle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Circle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				605701032005905800CF1FB7 /* AppDelegate.swift */,
+				60570119200C282600CF1FB7 /* Circle.swift */,
 				60570117200595C100CF1FB7 /* DrawView.swift */,
 				605701152005947C00CF1FB7 /* Line.swift */,
 				605701052005905800CF1FB7 /* ViewController.swift */,
@@ -142,6 +145,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6057011A200C282600CF1FB7 /* Circle.swift in Sources */,
 				605701162005947C00CF1FB7 /* Line.swift in Sources */,
 				605701062005905800CF1FB7 /* ViewController.swift in Sources */,
 				60570118200595C100CF1FB7 /* DrawView.swift in Sources */,

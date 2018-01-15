@@ -13,6 +13,11 @@ class DrawView: UIView {
     var currentLines = [NSValue: Line]()
     var finishedLines = [Line]()
     
+    //Solution to Golden Challenge
+    var circleTouches = [NSValue: CGPoint]()
+    var currentCircle: Circle?
+    var finishedCircles = [Circle]()
+    
     @IBInspectable var finishedLineColor: UIColor = UIColor.black {
         didSet {
             setNeedsDisplay()
@@ -40,13 +45,34 @@ class DrawView: UIView {
         path.stroke()
     }
     
+    //Solution to Golden Challenge
+    func strokeCircle(_ circle: Circle) {
+        let path = UIBezierPath(ovalIn: circle.rectangle)
+        path.lineWidth = lineThickness
+        path.stroke()
+    }
+    
     override func draw(_ rect: CGRect) {
         finishedLineColor.setStroke()
         for line in finishedLines {
             stroke(line)
         }
+        
+        //Solution to Golden Challenge
+        for circle in finishedCircles {
+            strokeCircle(circle)
+        }
+        
         currentLineColor.setStroke()
+        
+        //Solution to Golden Challenge
+        if let circle = currentCircle {
+            strokeCircle(circle)
+        }
+        
         for (_, line) in currentLines {
+            currentLineColor = UIColor(hue: line.angleSin, saturation: 1, brightness: 1, alpha: 1)
+            currentLineColor.setStroke()
             stroke(line)
         }
     }
@@ -54,11 +80,23 @@ class DrawView: UIView {
     //MARK: - Handling touches
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
-        for touch in touches {
-            let location = touch.location(in: self)
-            let newLine = Line(begin: location, end: location)
-            let key = NSValue(nonretainedObject: touch)
-            currentLines[key] = newLine
+        
+        //Solution to Golden Challenge
+        if touches.count == 2 {
+            for touch in touches {
+                let location = touch.location(in: self)
+                let key = NSValue(nonretainedObject: touch)
+                circleTouches[key] = location
+            }
+            let locations = circleTouches.values
+           // currentCircle = Circle(begin: locations[0], end: locations[1])
+        } else {
+            for touch in touches {
+                let location = touch.location(in: self)
+                let newLine = Line(begin: location, end: location)
+                let key = NSValue(nonretainedObject: touch)
+                currentLines[key] = newLine
+            }
         }
         setNeedsDisplay()
     }
@@ -89,6 +127,7 @@ class DrawView: UIView {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
         currentLines.removeAll()
+        currentCircle = nil
         setNeedsDisplay()
     }
 }
