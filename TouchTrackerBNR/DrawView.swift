@@ -58,19 +58,20 @@ class DrawView: UIView {
             stroke(line)
         }
         
-        //Solution to Golden Challenge
+        //Solution to the Golden Challenge
         for circle in finishedCircles {
             strokeCircle(circle)
         }
         
         currentLineColor.setStroke()
         
-        //Solution to Golden Challenge
+        //Solution to the Golden Challenge
         if let circle = currentCircle {
             strokeCircle(circle)
         }
         
         for (_, line) in currentLines {
+            //Solution to the Silver Challenge
             currentLineColor = UIColor(hue: line.angleSin, saturation: 1, brightness: 1, alpha: 1)
             currentLineColor.setStroke()
             stroke(line)
@@ -81,16 +82,12 @@ class DrawView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
         
-        //Solution to Golden Challenge
+        //Solution to the Golden Challenge
         if touches.count == 2 {
-            for touch in touches {
-                let location = touch.location(in: self)
-                let key = NSValue(nonretainedObject: touch)
-                circleTouches[key] = location
-            }
-            let locations = circleTouches.values
-           // currentCircle = Circle(begin: locations[0], end: locations[1])
+            currentCircle = Circle()
+            updateCirle(fromTouches: touches)
         } else {
+            //comleteCircle()
             for touch in touches {
                 let location = touch.location(in: self)
                 let newLine = Line(begin: location, end: location)
@@ -103,21 +100,38 @@ class DrawView: UIView {
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
-        for touch in touches {
-            let key = NSValue(nonretainedObject: touch)
-            currentLines[key]?.end = touch.location(in: self)
+        //Solution to the Golden Challenge
+        if touches.count == 2, let _ = currentCircle {
+                updateCirle(fromTouches: touches)
+        } else {
+            //comleteCircle()
+            for touch in touches {
+                let key = NSValue(nonretainedObject: touch)
+                currentLines[key]?.end = touch.location(in: self)
+                
+            }
         }
+        
         setNeedsDisplay()
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
-        for touch in touches {
-            let key = NSValue(nonretainedObject: touch)
-            if var line = currentLines[key] {
-                line.end = touch.location(in: self)
-                finishedLines.append(line)
-                currentLines.removeValue(forKey: key)
+        //Solution to Golden Challenge
+        if touches.count == 2 {
+            updateCirle(fromTouches: touches)
+            finishedCircles.append(currentCircle!)
+            currentCircle = nil
+            circleTouches.removeAll()
+        } else {
+            //comleteCircle()
+            for touch in touches {
+                let key = NSValue(nonretainedObject: touch)
+                if var line = currentLines[key] {
+                    line.end = touch.location(in: self)
+                    finishedLines.append(line)
+                    currentLines.removeValue(forKey: key)
+                }
             }
         }
         
@@ -127,9 +141,33 @@ class DrawView: UIView {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
         currentLines.removeAll()
+        circleTouches.removeAll()
         currentCircle = nil
         setNeedsDisplay()
     }
+    
+    private func updateCirle(fromTouches touches: Set<UITouch>) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            let key = NSValue(nonretainedObject: touch)
+            circleTouches[key] = location
+        }
+        let locations = Array(circleTouches.values)
+        currentCircle!.setLocation(locations)
+    }
+    
+    private func comleteCircle() {
+        if let circle = currentCircle {
+            finishedCircles.append(circle)
+            currentCircle = nil
+        }
+        circleTouches.removeAll()
+    }
+    
+    private func updateLines(fromTouches touches: Set<UITouch>) {
+        
+    }
+    
 }
 
 
