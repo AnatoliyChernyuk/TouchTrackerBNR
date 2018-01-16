@@ -118,7 +118,7 @@ class DrawView: UIView {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
         //Solution to Golden Challenge
-        if touches.count == 2 {
+        if touches.count == 2, let _ = currentCircle {
             updateCirle(fromTouches: touches)
             finishedCircles.append(currentCircle!)
             currentCircle = nil
