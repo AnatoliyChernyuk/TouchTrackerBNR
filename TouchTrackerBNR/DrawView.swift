@@ -47,7 +47,7 @@ class DrawView: UIView {
     
     //Solution to Golden Challenge
     func strokeCircle(_ circle: Circle) {
-        let path = UIBezierPath(ovalIn: circle.rectangle)
+        let path = UIBezierPath(ovalIn: circle.ovalRectangle)
         path.lineWidth = lineThickness
         path.stroke()
     }
@@ -154,14 +154,6 @@ class DrawView: UIView {
         }
         let locations = Array(circleTouches.values)
         currentCircle!.setLocation(locations)
-    }
-    
-    private func comleteCircle() {
-        if let circle = currentCircle {
-            finishedCircles.append(circle)
-            currentCircle = nil
-        }
-        circleTouches.removeAll()
     }
     
     private func updateLines(fromTouches touches: Set<UITouch>) {
