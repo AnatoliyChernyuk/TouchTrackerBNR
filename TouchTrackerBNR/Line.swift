@@ -13,7 +13,8 @@ struct Line {
     var begin = CGPoint.zero
     var end = CGPoint.zero
     
-    var angleSin: CGFloat { // Returns sine of the angle as a CGfloat accepted by UIColor initializer
+    // Returns sine of the angle as a CGFloat accepted by UIColor initializer
+    var angleSin: CGFloat {
         let x = Double(abs(Int32(end.x - begin.x)))
         let y = Double(abs(Int32(end.y - begin.y)))
         let h = sqrt(pow(x, 2) + pow(y, 2))

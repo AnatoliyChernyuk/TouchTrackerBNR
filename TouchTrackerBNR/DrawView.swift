@@ -12,6 +12,7 @@ class DrawView: UIView {
     
     var currentLines = [NSValue: Line]()
     var finishedLines = [Line]()
+    var selectedLineIndex: Int?
     
     //Solution to Golden Challenge
     var circleTouches = [NSValue: CGPoint]()
@@ -36,7 +37,20 @@ class DrawView: UIView {
         }
     }
     
-    func stroke(_ line: Line) {
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(doubleTap(_:)))
+        doubleTapRecognizer.numberOfTapsRequired = 2
+        doubleTapRecognizer.delaysTouchesBegan = true
+        addGestureRecognizer(doubleTapRecognizer)
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tap(_:)))
+        tapRecognizer.delaysTouchesBegan = true
+        tapRecognizer.require(toFail: doubleTapRecognizer)
+        addGestureRecognizer(tapRecognizer)
+        
+    }
+    
+    private func stroke(_ line: Line) {
         let path = UIBezierPath()
         path.lineWidth = lineThickness
         path.lineCapStyle = .round
@@ -46,8 +60,8 @@ class DrawView: UIView {
     }
     
     //Solution to Golden Challenge
-    func strokeCircle(_ circle: Circle) {
-        let path = UIBezierPath(ovalIn: circle.ovalRectangle)
+    private func strokeCircle(_ circle: Circle) {
+        let path = UIBezierPath(ovalIn: circle.circleRectangle)
         path.lineWidth = lineThickness
         path.stroke()
     }
@@ -76,6 +90,12 @@ class DrawView: UIView {
             currentLineColor.setStroke()
             stroke(line)
         }
+        
+        if let index = selectedLineIndex {
+            UIColor.green.setStroke()
+            let selectedLine = finishedLines[index]
+            stroke(selectedLine)
+        }
     }
     
     //MARK: - Handling touches
@@ -87,7 +107,6 @@ class DrawView: UIView {
             currentCircle = Circle()
             updateCirle(fromTouches: touches)
         } else {
-            //comleteCircle()
             for touch in touches {
                 let location = touch.location(in: self)
                 let newLine = Line(begin: location, end: location)
@@ -104,14 +123,12 @@ class DrawView: UIView {
         if touches.count == 2, let _ = currentCircle {
                 updateCirle(fromTouches: touches)
         } else {
-            //comleteCircle()
+            completeCircle()
             for touch in touches {
                 let key = NSValue(nonretainedObject: touch)
                 currentLines[key]?.end = touch.location(in: self)
-                
             }
         }
-        
         setNeedsDisplay()
     }
     
@@ -124,7 +141,7 @@ class DrawView: UIView {
             currentCircle = nil
             circleTouches.removeAll()
         } else {
-            //comleteCircle()
+            completeCircle()
             for touch in touches {
                 let key = NSValue(nonretainedObject: touch)
                 if var line = currentLines[key] {
@@ -134,7 +151,6 @@ class DrawView: UIView {
                 }
             }
         }
-        
         setNeedsDisplay()
     }
     
@@ -146,6 +162,7 @@ class DrawView: UIView {
         setNeedsDisplay()
     }
     
+    //MARK: - Circle helper methods
     private func updateCirle(fromTouches touches: Set<UITouch>) {
         for touch in touches {
             let location = touch.location(in: self)
@@ -156,10 +173,53 @@ class DrawView: UIView {
         currentCircle!.setLocation(locations)
     }
     
-    private func updateLines(fromTouches touches: Set<UITouch>) {
-        
+    private func completeCircle() {
+        if let circle = currentCircle {
+            finishedCircles.append(circle)
+            currentCircle = nil
+            circleTouches.removeAll()
+        }
     }
     
+    //MARK: - Gesture recognizers helper methods
+    @objc private func doubleTap(_ gestureRecognizer: UIGestureRecognizer) {
+        print("Recognized a double tap")
+        selectedLineIndex = nil
+        currentLines.removeAll()
+        finishedLines.removeAll()
+        finishedCircles.removeAll()
+        circleTouches.removeAll()
+        currentCircle = nil
+        setNeedsDisplay()
+    }
+    
+    @objc private func tap(_ gestureRecognizer: UIGestureRecognizer) {
+        print("Recognized a single tap")
+        let point = gestureRecognizer.location(in: self)
+        selectedLineIndex = indexOfLine(at: point)
+        setNeedsDisplay()
+    }
+    
+    private func indexOfLine(at point: CGPoint) -> Int? {
+        //Find a line close to point
+        for (index, line) in finishedLines.enumerated() {
+            let begin = line.begin
+            let end = line.end
+            
+            //Check few point on a line
+            for t in stride(from: CGFloat(0), to: 1.0, by: 0.05) {
+                let x = begin.x + ((end.x - begin.x) * t)
+                let y = begin.y + ((end.y - begin.y) * t)
+                
+                //If the tapped point is within 20 points, let's  return this line
+                if hypot(x - point.x, y - point.y) < 20.0 {
+                    return index
+                }
+            }
+        }
+        //If nothing is close enough to the tapped point, then we did not select a line
+        return nil
+    }
 }
 
 
