@@ -8,16 +8,28 @@
 
 import UIKit
 
-class DrawView: UIView {
+class DrawView: UIView, UIGestureRecognizerDelegate {
     
     var currentLines = [NSValue: Line]()
     var finishedLines = [Line]()
-    var selectedLineIndex: Int?
+    var selectedLineIndex: Int? {
+        didSet {
+            if selectedLineIndex == nil {
+                let menu = UIMenuController.shared
+                menu.setMenuVisible(false, animated: true)
+            }
+        }
+    }
+    var moveRecognizer: UIPanGestureRecognizer!
     
     //Solution to Golden Challenge
     var circleTouches = [NSValue: CGPoint]()
     var currentCircle: Circle?
     var finishedCircles = [Circle]()
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
     
     @IBInspectable var finishedLineColor: UIColor = UIColor.black {
         didSet {
@@ -47,7 +59,12 @@ class DrawView: UIView {
         tapRecognizer.delaysTouchesBegan = true
         tapRecognizer.require(toFail: doubleTapRecognizer)
         addGestureRecognizer(tapRecognizer)
-        
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:)))
+        addGestureRecognizer(longPressRecognizer)
+        moveRecognizer = UIPanGestureRecognizer(target: self, action: #selector(moveLine(_:)))
+        moveRecognizer.cancelsTouchesInView = false
+        moveRecognizer.delegate = self
+        addGestureRecognizer(moveRecognizer)
     }
     
     private func stroke(_ line: Line) {
@@ -162,6 +179,10 @@ class DrawView: UIView {
         setNeedsDisplay()
     }
     
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
     //MARK: - Circle helper methods
     private func updateCirle(fromTouches touches: Set<UITouch>) {
         for touch in touches {
@@ -197,6 +218,19 @@ class DrawView: UIView {
         print("Recognized a single tap")
         let point = gestureRecognizer.location(in: self)
         selectedLineIndex = indexOfLine(at: point)
+        let menu = UIMenuController.shared
+        if let _ = selectedLineIndex {
+            becomeFirstResponder() //Make the DrawView the target of menu item action messages
+            let deleteItem = UIMenuItem(title: "Delete", action: #selector(deleteLine(_:)))
+            menu.menuItems = [deleteItem]
+            let targetRect = CGRect(x: point.x, y: point.y, width: 2, height: 2)
+            menu.setTargetRect(targetRect, in: self)
+            menu.setMenuVisible(true, animated: true)
+        } else {
+            menu.setMenuVisible(false, animated: true)
+        }
+        
+        
         setNeedsDisplay()
     }
     
@@ -219,6 +253,45 @@ class DrawView: UIView {
         }
         //If nothing is close enough to the tapped point, then we did not select a line
         return nil
+    }
+    
+    @objc private func deleteLine(_ sender: UIMenuController) {
+        if let index = selectedLineIndex {
+            finishedLines.remove(at: index)
+            selectedLineIndex = nil
+            setNeedsDisplay()
+        }
+    }
+    
+    @objc private func longPress(_ gestureRecognizer: UIGestureRecognizer) {
+        print("Recognized a long press")
+        if gestureRecognizer.state == .began {
+            let point = gestureRecognizer.location(in: self)
+            selectedLineIndex = indexOfLine(at: point)
+            if selectedLineIndex != nil {
+                currentLines.removeAll()
+            }
+        } else if gestureRecognizer.state == .ended {
+            selectedLineIndex = nil
+        }
+        setNeedsDisplay()
+    }
+    
+    @objc private func moveLine(_ gestureRecognizer: UIPanGestureRecognizer) {
+        print("Recognized a pan")
+        if let index = selectedLineIndex {
+            if gestureRecognizer.state == .changed {
+                let translations = gestureRecognizer.translation(in: self) // Tracks how far pan moved from its initial position
+                finishedLines[index].begin.x += translations.x
+                finishedLines[index].begin.y += translations.y
+                finishedLines[index].end.x += translations.x
+                finishedLines[index].end.y += translations.y
+                gestureRecognizer.setTranslation(CGPoint.zero, in: self) // Reloads gesture's initial point
+                setNeedsDisplay()
+            } else {
+                return
+            }
+        }
     }
 }
 
