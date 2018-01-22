@@ -21,6 +21,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         }
     }
     var moveRecognizer: UIPanGestureRecognizer!
+    var longPressRecognizer: UILongPressGestureRecognizer!
     
     //Solution to Golden Challenge
     var circleTouches = [NSValue: CGPoint]()
@@ -59,7 +60,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         tapRecognizer.delaysTouchesBegan = true
         tapRecognizer.require(toFail: doubleTapRecognizer)
         addGestureRecognizer(tapRecognizer)
-        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:)))
+        longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:)))
         addGestureRecognizer(longPressRecognizer)
         moveRecognizer = UIPanGestureRecognizer(target: self, action: #selector(moveLine(_:)))
         moveRecognizer.cancelsTouchesInView = false
@@ -118,6 +119,10 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     //MARK: - Handling touches
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         print(#function)
+        let menu = UIMenuController.shared
+        if menu.isMenuVisible {
+            selectedLineIndex = nil
+        }
         
         //Solution to the Golden Challenge
         if touches.count == 2 {
@@ -168,6 +173,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
                 }
             }
         }
+        //moveRecognizer.isEnabled = true
         setNeedsDisplay()
     }
     
@@ -216,6 +222,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @objc private func tap(_ gestureRecognizer: UIGestureRecognizer) {
         print("Recognized a single tap")
+        //moveRecognizer.isEnabled = false
         let point = gestureRecognizer.location(in: self)
         selectedLineIndex = indexOfLine(at: point)
         let menu = UIMenuController.shared
@@ -265,6 +272,9 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @objc private func longPress(_ gestureRecognizer: UIGestureRecognizer) {
         print("Recognized a long press")
+        //moveRecognizer.isEnabled = true
+        let menu = UIMenuController.shared
+        menu.setMenuVisible(false, animated: true)
         if gestureRecognizer.state == .began {
             let point = gestureRecognizer.location(in: self)
             selectedLineIndex = indexOfLine(at: point)
@@ -279,6 +289,11 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @objc private func moveLine(_ gestureRecognizer: UIPanGestureRecognizer) {
         print("Recognized a pan")
+        
+        guard longPressRecognizer.state == .changed else {
+            return
+        }
+        
         if let index = selectedLineIndex {
             if gestureRecognizer.state == .changed {
                 let translations = gestureRecognizer.translation(in: self) // Tracks how far pan moved from its initial position
