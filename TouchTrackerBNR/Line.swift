@@ -12,6 +12,7 @@ import CoreGraphics
 struct Line {
     var begin = CGPoint.zero
     var end = CGPoint.zero
+    var width = CGFloat(10)
     
     // Returns sine of the angle as a CGFloat accepted by UIColor initializer
     var angleSin: CGFloat {

@@ -28,6 +28,20 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     var currentCircle: Circle?
     var finishedCircles = [Circle]()
     
+    private var adjustedLineThickness: CGFloat {
+        let velocity = moveRecognizer.velocity(in: self)
+        let x = abs(velocity.x)
+        let y = abs(velocity.y)
+        let result = max(x, y)
+        if result < 10.0 {
+            return result * 10.0
+        } else if result > 80 {
+            return result / 80
+        } else {
+            return result
+        }
+    }
+    
     override var canBecomeFirstResponder: Bool {
         return true
     }
@@ -70,7 +84,9 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     private func stroke(_ line: Line) {
         let path = UIBezierPath()
-        path.lineWidth = lineThickness
+        
+        path.lineWidth = line.width
+        
         path.lineCapStyle = .round
         path.move(to: line.begin)
         path.addLine(to: line.end)
@@ -131,7 +147,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         } else {
             for touch in touches {
                 let location = touch.location(in: self)
-                let newLine = Line(begin: location, end: location)
+                let newLine = Line(begin: location, end: location, width: adjustedLineThickness)
                 let key = NSValue(nonretainedObject: touch)
                 currentLines[key] = newLine
             }
@@ -149,6 +165,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
             for touch in touches {
                 let key = NSValue(nonretainedObject: touch)
                 currentLines[key]?.end = touch.location(in: self)
+                currentLines[key]?.width = adjustedLineThickness
             }
         }
         setNeedsDisplay()
@@ -168,6 +185,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
                 let key = NSValue(nonretainedObject: touch)
                 if var line = currentLines[key] {
                     line.end = touch.location(in: self)
+                    //currentLines[key]?.width = adjustLineThickness()
                     finishedLines.append(line)
                     currentLines.removeValue(forKey: key)
                 }
@@ -289,11 +307,10 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @objc private func moveLine(_ gestureRecognizer: UIPanGestureRecognizer) {
         print("Recognized a pan")
-        
+        print(moveRecognizer.velocity(in: self))
         guard longPressRecognizer.state == .changed else {
             return
         }
-        
         if let index = selectedLineIndex {
             if gestureRecognizer.state == .changed {
                 let translations = gestureRecognizer.translation(in: self) // Tracks how far pan moved from its initial position
