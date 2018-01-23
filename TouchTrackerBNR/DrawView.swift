@@ -10,6 +10,7 @@ import UIKit
 
 class DrawView: UIView, UIGestureRecognizerDelegate {
     
+    
     var currentLines = [NSValue: Line]()
     var finishedLines = [Line]()
     var selectedLineIndex: Int? {
@@ -22,6 +23,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     }
     var moveRecognizer: UIPanGestureRecognizer!
     var longPressRecognizer: UILongPressGestureRecognizer!
+    var swipeRecognizer: UISwipeGestureRecognizer!
     
     //Solution to Golden Challenge
     var circleTouches = [NSValue: CGPoint]()
@@ -68,6 +70,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+        
         let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(doubleTap(_:)))
         doubleTapRecognizer.numberOfTapsRequired = 2
         doubleTapRecognizer.delaysTouchesBegan = true
@@ -79,8 +82,8 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:)))
         addGestureRecognizer(longPressRecognizer)
         
-        let swipeRecognizer: UISwipeGestureRecognizer!
-        swipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(showColorPanel(_:)))
+        //let swipeRecognizer: UISwipeGestureRecognizer!
+        swipeRecognizer = UISwipeGestureRecognizer(target: window?.rootViewController, action: #selector(DrawViewController.swipe))
         swipeRecognizer.numberOfTouchesRequired = 2
         swipeRecognizer.direction = .up
         swipeRecognizer.delaysTouchesBegan = true
@@ -346,7 +349,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @objc private func showColorPanel(_ gestureRecognizer: UISwipeGestureRecognizer) {
         print("Swipe detected")
-        chosenColor = UIColor.orange
+        
     }
 }
 
