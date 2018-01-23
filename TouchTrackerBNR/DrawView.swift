@@ -28,6 +28,8 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     var currentCircle: Circle?
     var finishedCircles = [Circle]()
     
+    var chosenColor: UIColor?
+    
     private var adjustedLineThickness: CGFloat {
         let velocity = moveRecognizer.velocity(in: self)
         let x = abs(velocity.x)
@@ -76,10 +78,20 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         addGestureRecognizer(tapRecognizer)
         longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:)))
         addGestureRecognizer(longPressRecognizer)
+        
+        let swipeRecognizer: UISwipeGestureRecognizer!
+        swipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(showColorPanel(_:)))
+        swipeRecognizer.numberOfTouchesRequired = 2
+        swipeRecognizer.direction = .up
+        swipeRecognizer.delaysTouchesBegan = true
+        addGestureRecognizer(swipeRecognizer)
+        
         moveRecognizer = UIPanGestureRecognizer(target: self, action: #selector(moveLine(_:)))
         moveRecognizer.cancelsTouchesInView = false
         moveRecognizer.delegate = self
+        moveRecognizer.require(toFail: swipeRecognizer)
         addGestureRecognizer(moveRecognizer)
+        
     }
     
     private func stroke(_ line: Line) {
@@ -111,6 +123,10 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
             strokeCircle(circle)
         }
         
+        if let color = chosenColor {
+            currentLineColor = color
+        }
+        
         currentLineColor.setStroke()
         
         //Solution to the Golden Challenge
@@ -120,8 +136,10 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         
         for (_, line) in currentLines {
             //Solution to the Silver Challenge
-            currentLineColor = UIColor(hue: line.angleSin, saturation: 1, brightness: 1, alpha: 1)
-            currentLineColor.setStroke()
+            if chosenColor == nil {
+                currentLineColor = UIColor(hue: line.angleSin, saturation: 1, brightness: 1, alpha: 1)
+                currentLineColor.setStroke()
+            }
             stroke(line)
         }
         
@@ -307,7 +325,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @objc private func moveLine(_ gestureRecognizer: UIPanGestureRecognizer) {
         print("Recognized a pan")
-        print(moveRecognizer.velocity(in: self))
+        //print(moveRecognizer.velocity(in: self))
         guard longPressRecognizer.state == .changed else {
             return
         }
@@ -324,6 +342,11 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
                 return
             }
         }
+    }
+    
+    @objc private func showColorPanel(_ gestureRecognizer: UISwipeGestureRecognizer) {
+        print("Swipe detected")
+        chosenColor = UIColor.orange
     }
 }
 
