@@ -84,7 +84,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         
         //let swipeRecognizer: UISwipeGestureRecognizer!
         swipeRecognizer = UISwipeGestureRecognizer(target: window?.rootViewController, action: #selector(DrawViewController.swipe))
-        swipeRecognizer.numberOfTouchesRequired = 2
+        swipeRecognizer.numberOfTouchesRequired = 3
         swipeRecognizer.direction = .up
         swipeRecognizer.delaysTouchesBegan = true
         addGestureRecognizer(swipeRecognizer)
